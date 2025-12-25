@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AI Text to Image Generator</title>
+<style>
+body{background:#0f172a;color:white;font-family:Arial;margin:0;}
+.container{max-width:950px;margin:50px auto;background:#111827;padding:30px;border-radius:15px;box-shadow:0px 0px 30px #000;}
+h1{text-align:center;color:#38bdf8;}
+.input-box{width:100%;padding:15px;border-radius:10px;border:none;background:#020617;color:white;font-size:16px;resize:none;height:100px;}
+.select-box{width:49%;padding:10px;border-radius:10px;border:none;margin-top:10px;font-size:16px;}
+.btn{width:100%;padding:18px;background:#22c55e;color:white;font-size:18px;border-radius:10px;border:none;cursor:pointer;margin-top:10px;}
+.btn:hover{background:#16a34a;}
+.image-box{margin-top:25px;text-align:center;}
+img{max-width:100%;border-radius:15px;border:3px solid #22c55e;}
+.loading{text-align:center;font-size:18px;color:#38bdf8;}
+.download-btn{margin-top:15px;padding:12px 20px;font-size:16px;background:#facc15;color:#111827;border:none;border-radius:10px;cursor:pointer;}
+.download-btn:hover{background:#eab308;}
+@media(max-width:600px){.select-box{width:100%;}}
+</style>
+</head>
+<body>
+
+<div class="container">
+<h1>🔥 AI Text to Image Generator</h1>
+<textarea class="input-box" id="prompt" placeholder="Write your prompt here..."></textarea>
+<div style="display:flex; justify-content:space-between;">
+<select class="select-box" id="style">
+<option value="1">Realistic</option>
+<option value="2">Anime</option>
+<option value="3">Cartoon</option>
+<option value="4">Digital Art</option>
+</select>
+<select class="select-box" id="size">
+<option value="512-512">512x512</option>
+<option value="768-768">768x768</option>
+<option value="1024-1024">1024x1024</option>
+</select>
+</div>
+
+<button class="btn" onclick="generate()">Generate Image</button>
+<p class="loading" id="status"></p>
+<div class="image-box" id="result"></div>
+</div>
+
+<script>
+let currentImage = "";
+
+function generate(){
+ let prompt=document.getElementById("prompt").value;
+ if(prompt==""){alert("Enter Prompt First"); return;}
+ let style=document.getElementById("style").value;
+ let size=document.getElementById("size").value;
+ document.getElementById("status").innerHTML="⏳ Generating Image... Please Wait...";
+ document.getElementById("result").innerHTML="";
+ currentImage = "";
+
+ fetch("/api",{
+  method:"POST",
+  headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({prompt,style,size})
+ })
+ .then(res=>res.json())
+ .then(data=>{
+  document.getElementById("status").innerHTML="";
+  if(data.status=="success"){
+   currentImage = data.image;
+   document.getElementById("result").innerHTML=
+    `<img src="${data.image}" />
+     <br><button class="download-btn" onclick="downloadImage()">Download Image</button>`;
+  }else{
+   document.getElementById("result").innerHTML=
+    `<h3 style="color:red">Failed To Generate Image</h3>`;
+  }
+ })
+ .catch(()=>{
+  document.getElementById("status").innerHTML="";
+  document.getElementById("result").innerHTML=
+  `<h3 style="color:red">Server Error</h3>`;
+ });
+}
+
+function downloadImage(){
+ if(currentImage=="") return;
+ const link = document.createElement("a");
+ link.href = currentImage;
+ link.download = "AI_Image.png";
+ document.body.appendChild(link);
+ link.click();
+ document.body.removeChild(link);
+}
+</script>
+</body>
+</html>
